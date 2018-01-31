@@ -1,0 +1,62 @@
+<launch>
+	
+	<node name="dynamixel_manager" pkg="dynamixel_controllers" type="controller_manager.py" required="true" output="screen">
+        <rosparam>
+            namespace: dxl_manager
+            serial_ports:
+                pan_tilt_port:
+                    port_name: "/dev/ttyUSB0"
+                    baud_rate: 1000000
+                    min_motor_id: 1
+                    max_motor_id: 11
+                    update_rate: 20
+        </rosparam>
+    </node>
+	
+<!-- Start tilt joint controller -->
+    <rosparam file="$(find my_dynamixel_tutorial)/motor.yaml" command="load"/>
+    <node name="controller_spawner" pkg="dynamixel_controllers" type="controller_spawner.py"
+          args="--manager=dxl_manager
+                --port pan_tilt_port
+				head_controller
+                neck_controller                       
+                right_shoulder_controller
+				left_shoulder_controller
+				right_bicep_controller
+				left_bicep_controller
+				right_elbow_controller
+				left_elbow_controller
+				right_hand_controller
+				left_hand_controller
+				"
+          output="screen"/>
+          
+<!-- Start joints trajectory controller controller -->
+    <rosparam file="$(find my_dynamixel_tutorial)/jtc.yaml" command="load"/>
+    <node name="controller_spawner_meta" pkg="dynamixel_controllers" type="controller_spawner.py"
+          args="--manager=dxl_manager
+                --type=meta
+                arm_controller
+				head_controller
+                neck_controller
+                right_shoulder_controller
+				left_shoulder_controller
+				right_bicep_controller
+				left_bicep_controller
+				right_elbow_controller
+				left_elbow_controller
+				right_hand_controller
+				left_hand_controller
+				"
+		  output="screen"/>
+	
+	<node name="dx_clone" pkg="my_dynamixel_tutorial" type="clone_move.py" output="screen"/>
+	<node pkg="rosservice" type="rosservice" name="torque_enable1" args="call --wait right_bicep_controller/torque_enable 0"/>
+	<node pkg="rosservice" type="rosservice" name="torque_enable2" args="call --wait right_shoulder_controller/torque_enable 0"/>
+	<node pkg="rosservice" type="rosservice" name="torque_enable3" args="call --wait right_hand_controller/torque_enable 0"/>
+	<node pkg="rosservice" type="rosservice" name="torque_enable4" args="call --wait right_elbow_controller/torque_enable 0"/>
+	
+	<include file="$(find turtlebot_bringup)/launch/minimal.launch"/>
+	<include file="$(find turtlebot_teleop)/launch/keyboard_teleop.launch"/>
+
+</launch>
